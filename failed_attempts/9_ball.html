@@ -1,0 +1,85 @@
+<html>
+    <head>
+
+        <style>
+            body{
+                background: #222;
+            }
+            svg{
+                box-shadow: 0 0 0 2px #666;
+            }
+        </style>
+    </head>
+    <body>
+        <svg width="320" height="320">
+            <defs>
+              <linearGradient id="linear" x1="40%" y1="0%" x2="60%" y2="0%" spreadMethod="pad">
+                <stop offset="0%"   stop-color="#25a"/>
+                <stop offset="100%" stop-color="#58f"/>
+              </linearGradient>
+            </defs>
+            <path id="swirly" stroke="url(#linear)" stroke-width="6" fill="transparent" />
+        </svg>
+        <script>
+            const swirlyPath = document.querySelector('#swirly')
+            swirlyPath.setAttribute('d', 'M 160 0 L 0 320')
+
+            const radius = 90
+            const center = 160
+            const svgSize = 320
+
+            const updatePath = (time) => {
+                var point = swirlyPoint(0, time)
+                var x = point.x
+                var y = point.y
+                //var rotated = rotate3D({ x, y }, time/1000)
+                var rotated = { x: center-x, y: center-y }
+                var path = 'M ' + rotated.x + ' ' + rotated.y + ' '
+
+                for(var angle = 1; angle < 360; angle++){
+                    const radians = angle * Math.PI / 180.0
+                    point = swirlyPoint(radians, time)
+                    x = point.x
+                    y = point.y
+
+                    //rotated = rotate3D({ x, y }, time/1000)
+                    rotated = { x: center-x, y: center-y }
+                    path += 'L ' + rotated.x + ' ' + rotated.y + ' '
+                }
+                swirlyPath.setAttribute('d', path + 'Z')
+
+                window.requestAnimationFrame(updatePath)
+            }
+
+            const swirlyPoint = (a, t) => {
+               // x : r * sin(a)*cos(b)
+               // y : r * sin(a)*sin(b)
+               // z : r * cos(a)
+
+               var b= 4*(1+Math.sin(t/2000))*Math.sin(a+t/2000);
+                var x = radius * Math.cos(a) * Math.cos(b)
+                var y = radius * Math.sin(b) 
+              
+
+                var z = radius * Math.cos(t/1000)
+
+               
+                return {x, y, z}
+            }
+
+            const rotate3D = ({x, y}, theta) => {
+                // rotate and center
+                //return {
+                //    x:center-x,
+                //    y:center-y
+                //}
+                return {
+                    x: center - x * Math.cos(theta) + y * Math.sin(theta),
+                    y: center - x * Math.cos(theta) - x * Math.sin(theta)
+                }
+            }
+
+            updatePath(0)
+        </script>
+    </body>
+</html>

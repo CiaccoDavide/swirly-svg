@@ -1,0 +1,35 @@
+<html>
+    <head></head>
+    <body>
+        <svg width="320" height="320">
+            <path id="swirly" stroke="black" stroke-width="6" fill="transparent" />
+        </svg>
+        <script>
+            const swirlyPath = document.querySelector('#swirly')
+            swirlyPath.setAttribute('d', 'M 160 0 L 0 320')
+
+            const radius = 90
+            const center = 160
+            const svgSize = 320
+
+            const updatePath = (time) => {
+
+                // (x−h)2+(y−k)2+(z−l)2=r2
+
+                var path = 'M ' + (center - radius * Math.cos(0)) + ' ' + (center - radius * Math.sin(0)) + ' '
+
+                for(var angle = 1; angle < 361; angle++){
+                    const radians = angle * Math.PI / 180.0
+                    const x = center - radius * Math.cos(radians)
+                    const y = center - radius * Math.sin(radians)
+                    path += 'L ' + x + ' ' + y + ' '
+                }
+                swirlyPath.setAttribute('d', path)
+
+                window.requestAnimationFrame(updatePath)
+            }
+
+            updatePath(0)
+        </script>
+    </body>
+</html>

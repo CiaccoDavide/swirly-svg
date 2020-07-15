@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body{
+                background: #1a1a1a;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: absolute;
+                left:0;
+                right:0;
+                top:0;
+                bottom:0;
+            }
+        </style>
+    </head>
+    <body>
+        <svg width="320" height="320" preserveAspectRatio="none">
+            <defs>
+                <filter id="blurredShadow" x="0" y="0" width="200%" height="200%">
+                    <feOffset result="offOut" in="SourceGraphic" dx="10" dy="10" />
+                    <feGaussianBlur result="blurOut" in="offOut" stdDeviation="4" />
+                    <feColorMatrix in="blurOut" result="opacityOut" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .5 0"/>
+                    <feBlend in="SourceGraphic" in2="opacityOut" mode="normal" />
+                </filter>
+            </defs>
+            <g  x="0" y="0" width="320" height="320" filter="url(#blurredShadow)" id="svg">
+                <rect width="1" height="1" fill="transparent" />
+            </g>
+        </svg>
+        
+        <script>
+            const svg = document.querySelector('#svg')
+
+            const timeMultiplier = 0.001
+            const twirlAmount = 9
+            const precision = 1
+            const linesAmount = 360 * precision
+            const lines = new Array(linesAmount)
+
+            for(var l = 0; l <= linesAmount; l++){
+                const line = document.createElementNS('http://www.w3.org/2000/svg','line')
+                line.setAttribute('id', 'line_' + l)
+                line.setAttribute('stroke-width', '6')
+                line.setAttribute('stroke-linecap', 'round')
+                svg.appendChild(line)
+                lines[l] = document.querySelector('#line_'+l)
+            }
+
+            const radius = 90
+            const center = 160
+            const svgSize = 320
+
+            const projection = ({ x, y, z }, t) => {
+                return {
+                    x: x + z*Math.sin(t*timeMultiplier),
+                    y: y - z*Math.sin(t*timeMultiplier)
+                }
+            }
+            
+            const updatePath = (time) => {
+
+                var point = swirlyPoint(0, time)
+                var x = point.x
+                var y = point.y
+                
+                var previous = { x: center-x, y: center-y, z: point.z }
+                const first = previous
+
+
+                for(var angle = 0; angle < linesAmount; angle += 1 / precision){
+                    const radians = angle / precision * Math.PI / 180.0
+                    point = swirlyPoint(radians, time)
+
+                    x = center-point.x
+                    y = center-point.y
+
+                    let index = Math.floor(angle)
+                    lines[index].setAttribute('x1', previous.x)
+                    lines[index].setAttribute('x2', x)
+                    lines[index].setAttribute('y1', previous.y)
+                    lines[index].setAttribute('y2', y)
+                    lines[index].setAttribute('stroke', hslToRgb(angle / precision / 360, 0.4, 0.6))
+
+                    previous = { x, y, z: point.z }
+                }
+
+                let index = Math.floor(linesAmount)
+                lines[index].setAttribute('x1', previous.x)
+                lines[index].setAttribute('x2', first.x)
+                lines[index].setAttribute('y1', previous.y)
+                lines[index].setAttribute('y2', first.y)
+                lines[index].setAttribute('stroke', hslToRgb(angle / precision / 360, 0.4, 0.6))
+
+                window.requestAnimationFrame(updatePath)
+            }
+
+            const swirlyPoint = (a, t) => {
+                let z = Math.sin(a);
+                b = z*Math.cos( t*timeMultiplier) * twirlAmount;
+                let x = Math.cos(b) * Math.cos(a);
+                let y = Math.sin(b) * Math.cos(a);
+          
+                point = projection({ x, y, z }, t)
+
+                x = point.x * radius
+                y = point.y * radius
+
+                return { x, y, z }
+            }
+
+            // start rendering
+            updatePath(0)
+
+
+
+
+            // COLORS STUFF
+            function hslToRgb(h, s, l){
+                var r, g, b;
+
+                if(s == 0){
+                    r = g = b = l;
+                }else{
+                    var hue2rgb = function hue2rgb(p, q, t){
+                        if(t < 0) t += 1;
+                        if(t > 1) t -= 1;
+                        if(t < 1/6) return p + (q - p) * 6 * t;
+                        if(t < 1/2) return q;
+                        if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                        return p;
+                    }
+
+                    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    var p = 2 * l - q;
+                    r = hue2rgb(p, q, h + 1/3);
+                    g = hue2rgb(p, q, h);
+                    b = hue2rgb(p, q, h - 1/3);
+                }
+
+                return 'rgb('+Math.round(r * 255)+' '+ Math.round(g * 255)+' '+ Math.round(b * 255)+')';
+            }
+        </script>
+    </body>
+</html>
